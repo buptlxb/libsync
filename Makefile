@@ -5,7 +5,7 @@ BUILD_DIR := build
 SRC_DIR := src
 
 INCLUDE := -I./include 
-CFLAGS := -fPIC -shared
+CFLAGS := -fPIC -shared -D_DEBUG
 CXX := g++ 
 CC := gcc
 
@@ -39,7 +39,7 @@ all: $(OBJ_S)
 # DO NOT MODIFY THE FOLLOWING LINES
 ############################################
 
-include $(DEP) 
+-include $(DEP) 
 
 $(BUILD_DIR)/%.d: %.cpp
 	@if [ ! -d $(BUILD_DIR) ]; then \

@@ -1,32 +1,31 @@
 #include "mutex.h"
 #include "atomic.h"
+#include <errno.h>
 #include <unistd.h>
 #include <sys/syscall.h>
 #include <linux/futex.h>
 #include <stdlib.h>
 
-#define EBUSY -1
-
-int mutex_init(mutex *m)
+int32_t mutex_init(mutex_t *m)
 {
-    *m = 0;
+    *m = MUTEX_INITIALIZER;
     return 0;
 }
 
-int mutex_destroy(mutex *m)
+int32_t mutex_destroy(mutex_t *m)
 {
     return 0;
 }
 
-int mutex_lock(mutex *m)
+int32_t mutex_lock(mutex_t *m)
 {
     DEBUG(fprintf(stderr, "[%d] mutex_lock start\n", pthread_self()));
-    int i, c;
+    int32_t i, c;
     
     /* Spin and try to take lock */
     for (i = 0; i < 100; i++)
     {
-        c = atomic_cmpxchg(m, 0, 1);
+        c = atomic_cmpxchg_32(m, UNLOCK, LOCKED);
         if (!c) {
             DEBUG(fprintf(stderr, "[%d] mutex_lock end\n", pthread_self()));
             return 0;
@@ -36,32 +35,32 @@ int mutex_lock(mutex *m)
     }
 
     /* The lock is now contended */
-    if (c == 1) c = xchg_32(m, 2);
+    if (c == LOCKED) c = xchg_32(m, LOCKED_WITH_WAITERS);
 
     while (c)
     {
         /* Wait in the kernel */
-        int ret = syscall(SYS_futex, m, FUTEX_WAIT_PRIVATE, 2, NULL, NULL, 0);
+        int32_t ret = syscall(SYS_futex, m, FUTEX_WAIT_PRIVATE, LOCKED_WITH_WAITERS, NULL, NULL, 0);
         DEBUG(fprintf(stderr, "[%d] syscall(SYS_futex, 0x%p, FUTEX_WAIT_PRIVATE, %d, %p, %p, %d)=%d\n",
-                    pthread_self(), m, 2, NULL, NULL, 0, ret));
-        c = xchg_32(m, 2);
+                    pthread_self(), m, LOCKED_WITH_WAITERS, NULL, NULL, 0, ret));
+        c = xchg_32(m, LOCKED_WITH_WAITERS);
     }
     
     DEBUG(fprintf(stderr, "[%d] mutex_lock end\n", pthread_self()));
     return 0;
 }
 
-int mutex_unlock(mutex *m)
+int32_t mutex_unlock(mutex_t *m)
 {
     DEBUG(fprintf(stderr, "[%d] mutex_unlock start\n", pthread_self()));
-    int i;
+    int32_t i;
     
     /* Unlock, and if not contended then exit. */
-    if (*m == 2)
+    if (*m == LOCKED_WITH_WAITERS)
     {
-        *m = 0;
+        *m = UNLOCK;
     }
-    else if (xchg_32(m, 0) == 1) {
+    else if (xchg_32(m, UNLOCK) == LOCKED) {
         DEBUG(fprintf(stderr, "[%d] mutex_unlock end\n", pthread_self()));
         return 0;
     }
@@ -72,7 +71,7 @@ int mutex_unlock(mutex *m)
         if (*m)
         {
             /* Need to set to state 2 because there may be waiters */
-            if (atomic_cmpxchg(m, 1, 2)) {
+            if (atomic_cmpxchg_32(m, LOCKED, LOCKED_WITH_WAITERS)) {
                 DEBUG(fprintf(stderr, "[%d] mutex_unlock end\n", pthread_self()));
                 return 0;
             }
@@ -81,7 +80,7 @@ int mutex_unlock(mutex *m)
     }
     
     /* We need to wake someone up */
-    int ret = syscall(SYS_futex, m, FUTEX_WAKE_PRIVATE, 1, NULL, NULL, 0);
+    int32_t ret = syscall(SYS_futex, m, FUTEX_WAKE_PRIVATE, 1, NULL, NULL, 0);
     DEBUG(fprintf(stderr, "[%d] syscall(SYS_futex, 0x%p, FUTEX_WAKE_PRIVATE, %d, %p, %p, %d)=%d\n",
                     pthread_self(), m, 1, NULL, NULL, 0, ret));
     
@@ -89,10 +88,10 @@ int mutex_unlock(mutex *m)
     return 0;
 }
 
-int mutex_trylock(mutex *m)
+int32_t mutex_trylock(mutex_t *m)
 {
     /* Try to take the lock, if is currently unlocked */
-    unsigned c = atomic_cmpxchg(m, 0, 1);
+    uint32_t c = atomic_cmpxchg_32(m, UNLOCK, LOCKED);
     if (!c) return 0;
     return EBUSY;
 }

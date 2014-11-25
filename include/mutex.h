@@ -1,17 +1,20 @@
 #ifndef MUTEX_H
 #define MUTEX_H
 
-typedef int mutex;
+#include <stdint.h>
 
-#define MUTEX_INITIALIZER {0}
+typedef int32_t mutex_t;
 
-int mutex_init(mutex *m);
-int mutex_destroy(mutex *m);
+#define MUTEX_INITIALIZER UNLOCK
 
-int mutex_lock(mutex *m);
-int mutex_unlock(mutex *m);
-int mutex_trylock(mutex *m);
+int32_t mutex_init(mutex_t *m);
+int32_t mutex_destroy(mutex_t *m);
 
+int32_t mutex_lock(mutex_t *m);
+int32_t mutex_unlock(mutex_t *m);
+int32_t mutex_trylock(mutex_t *m);
+
+#if 0
 #ifdef _DEBUG
 
 #include <stdio.h>
@@ -24,5 +27,6 @@ int mutex_trylock(mutex *m);
 #define DEBUG(str)
 
 #endif /* end _DEBUG */
+#endif
 
 #endif /* end MUTEX_H */

@@ -1,6 +1,10 @@
 #ifndef BARRIER_H
 #define BARRIER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include "mutex.h"
 #include "cond.h"
@@ -16,4 +20,9 @@ typedef struct {
 int32_t barrier_init(barrier_t *b, int32_t n);
 int32_t barrier_destroy(barrier_t *b);
 int32_t barrier_wait(barrier_t *b);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

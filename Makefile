@@ -5,7 +5,7 @@ BUILD_DIR := build
 SRC_DIR := src
 
 INCLUDE := -I./include 
-CFLAGS := -fPIC -shared -D_DEBUG
+CFLAGS := -fPIC -shared -O3 #-DSPIN -DSPIN_TIMES=10 #-D_DEBUG
 CXX := g++ 
 CC := gcc
 

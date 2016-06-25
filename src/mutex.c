@@ -23,8 +23,10 @@ int32_t mutex_lock(mutex_t *m)
     int32_t i, c;
     
     /* Spin and try to take lock */
-    for (i = 0; i < 100; i++)
+#ifdef SPIN
+    for (i = 0; i < SPIN_TIMES; i++)
     {
+#endif
         c = atomic_cmpxchg_32(m, UNLOCK, LOCKED);
         if (!c) {
             DEBUG(fprintf(stderr, "[%d] mutex_lock end\n", pthread_self()));
@@ -32,7 +34,9 @@ int32_t mutex_lock(mutex_t *m)
         }
         
         cpu_relax();
+#ifdef SPIN
     }
+#endif
 
     /* The lock is now contended */
     if (c == LOCKED) c = xchg_32(m, LOCKED_WITH_WAITERS);
@@ -66,8 +70,10 @@ int32_t mutex_unlock(mutex_t *m)
     }
 
     /* Spin and hope someone takes the lock */
-    for (i = 0; i < 200; i++)
+#ifdef SPIN
+    for (i = 0; i < SPIN_TIMES; i++)
     {
+#endif
         if (*m)
         {
             /* Need to set to state 2 because there may be waiters */
@@ -77,7 +83,9 @@ int32_t mutex_unlock(mutex_t *m)
             }
         }
         cpu_relax();
+#ifdef SPIN
     }
+#endif
     
     /* We need to wake someone up */
     int32_t ret = syscall(SYS_futex, m, FUTEX_WAKE_PRIVATE, 1, NULL, NULL, 0);

@@ -1,6 +1,10 @@
 #ifndef MUTEX_H
 #define MUTEX_H
 
+#ifdef __cplusplus 
+extern "C" { 
+#endif
+
 #include <stdint.h>
 
 typedef int32_t mutex_t;
@@ -27,6 +31,10 @@ int32_t mutex_trylock(mutex_t *m);
 #define DEBUG(str)
 
 #endif /* end _DEBUG */
+#endif
+
+#ifdef __cplusplus 
+} 
 #endif
 
 #endif /* end MUTEX_H */

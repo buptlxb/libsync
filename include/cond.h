@@ -1,6 +1,10 @@
 #ifndef COND_H
 #define COND_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <stdint.h>
 #include "mutex.h"
 
@@ -17,5 +21,9 @@ int32_t cond_destroy(cond_t *cond);
 int32_t cond_wait(cond_t *cond, mutex_t *lock);
 int32_t cond_signal(cond_t *cond);
 int32_t cond_broadcast(cond_t *cond);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

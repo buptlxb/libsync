@@ -18,6 +18,10 @@
 
 #endif /* end _DEBUG */
 
+#ifdef __cplusplus 
+extern "C" { 
+#endif
+
 #include <sched.h>
 
 static inline int32_t atomic_cmpxchg_32(int32_t *v, int32_t o, int32_t n)
@@ -84,5 +88,9 @@ static inline int32_t atomic_add_32(int32_t *a, int32_t b)
     DEBUG(fprintf(stderr, "[%d] atomic_add_32(0x%p(%d), %d)=%d\n", pthread_self(), a, *a, b , b));
     return b;
 }
+
+#ifdef __cplusplus 
+} 
+#endif
 
 #endif

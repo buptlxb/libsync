@@ -11,7 +11,7 @@ libsync
 
 ## Example
 
-    ```C
+    :::C
     // static initialization
     mutex_t mutex = MUTEX_INITIALIZER;
     // dynamic initialization
@@ -24,6 +24,7 @@ libsync
     mutex_trylock(&mutex);
     // destruct mutex
     mutex_destroy(&mutex);
+    :::
 
 ## Build
 
